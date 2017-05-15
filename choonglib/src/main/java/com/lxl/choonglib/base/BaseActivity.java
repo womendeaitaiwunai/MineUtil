@@ -4,12 +4,9 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.os.Bundle;
 import android.support.annotation.AnimRes;
 import android.support.annotation.IdRes;
-import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -17,9 +14,6 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Toast;
-
-import com.pixel.photostudiob.common.Constants;
-import com.pixel.photostudiob.util.PixelLog;
 
 import java.io.File;
 
@@ -31,21 +25,6 @@ import java.io.File;
 public abstract class BaseActivity extends AppCompatActivity {
     private AlertDialog noCancelDialog;
     private ProgressDialog progressDialog;
-    protected static SharedPreferences spUser;
-    protected static SharedPreferences.Editor editorUser;
-    public PixelLog logger ;
-
-    @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        spUser = getSharedPreferences(Constants.SP_NAME, MODE_PRIVATE);
-        editorUser = spUser.edit();
-        logger = BaseApplication.pixelLog;
-        if(logger==null){
-            logger = PixelLog.getInstance();
-        }
-    }
-
 
     public void deleteCrach(){
         File file=BaseActivity.this.getCacheDir();
