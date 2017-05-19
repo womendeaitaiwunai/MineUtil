@@ -1,4 +1,4 @@
-package com.lxl.mineutil;
+package com.lxl.mineutil.bean;
 
 
 

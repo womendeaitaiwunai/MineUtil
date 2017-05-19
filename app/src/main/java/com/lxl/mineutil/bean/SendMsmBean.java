@@ -1,4 +1,4 @@
-package com.lxl.mineutil;
+package com.lxl.mineutil.bean;
 
 /**
  * Created by lxl on 2017/5/15.

@@ -1,12 +1,13 @@
-package com.lxl.mineutil;
+package com.lxl.mineutil.bean;
 
+/**
+ * Created by Administrator on 2017/5/14.
+ */
 
-
-public class Request {
+public class CheckBean {
     private String mid;
     private String accesstoken;
     private String version;
-    private Packet packet;
 
     public String getMid() {
         return mid;
@@ -30,13 +31,5 @@ public class Request {
 
     public void setVersion(String version) {
         this.version = version;
-    }
-
-    public Packet getPacket() {
-        return packet;
-    }
-
-    public void setPacket(Packet packet) {
-        this.packet = packet;
     }
 }

@@ -1,7 +1,8 @@
-package com.lxl.mineutil;
+package com.lxl.mineutil.util;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.text.TextUtils;
@@ -9,9 +10,15 @@ import android.util.Log;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by lxl on 2016/8/31.
+ * 使用　　
+ * DBUtil dbUtil=new DBUtil(MainActivity.this);
+ * dbUtil.insertDate(jsonData);
+ * dbUtil.query(jsonData.getClass(),-1);
  */
 public class DBUtil {
     private Class<?> calss;
@@ -25,12 +32,14 @@ public class DBUtil {
     private DbHelper dbHelper;
     private Context context;
 
-    public  void insertDate(Class<?> tClass){
+    public  void insertDate(Object object){
+        Class tClass=object.getClass();
         this.calss= tClass;
         version=sharedPreferences.getInt("dbVersion",1);
-        edit.putInt("dbVersion",version+1);
-        edit.commit();
-
+        if (version!=1){
+            edit.putInt("dbVersion",version+1);
+            edit.commit();
+        }
         dbNum=sharedPreferences.getInt("DbNum",0);
         edit.putInt("DbNum",dbNum+1);
         edit.commit();
@@ -38,10 +47,12 @@ public class DBUtil {
         edit.putString("dbNum"+(dbNum+1),tClass.getName());
         edit.commit();
 
+        Log.i("版本",version+"");
         dbHelper=new DbHelper(context,version);
         SQLiteDatabase db=dbHelper.getWritableDatabase();
         try {
-            db.execSQL(getInserSQL(tClass),getSqlValue(tClass));
+            db.beginTransaction();
+            db.execSQL(getInserSQL(tClass),getSqlValue(object));
             db.setTransactionSuccessful();
             db.endTransaction();
             db.close();
@@ -51,6 +62,41 @@ public class DBUtil {
         } finally {
             db.close();
         }
+    }
+	
+	
+	 //五：查：根据id查询数据库
+    public List<String> query(Class dbName, int id){
+        //1.获取相应的（可读的）数据库
+        List<String> results=new ArrayList<>();
+        Field[] field = dbName.getDeclaredFields();
+        if (dbHelper==null) dbHelper=new DbHelper(context,version);
+        SQLiteDatabase readableDatabase = dbHelper.getReadableDatabase();
+        //2.执行更新语句
+        Cursor rawQuery = null;
+        try {
+            if (id==-1){
+                rawQuery= readableDatabase.rawQuery("select * from "+dbName.getSimpleName(),new String[]{});
+            }else {
+                rawQuery= readableDatabase.rawQuery("select * from "+dbName.getSimpleName()+"+ where id=?",  new String[]{String.valueOf(id)});
+            }
+
+            while(rawQuery.moveToNext()){
+                StringBuilder result=new StringBuilder("");
+                for (int i = 1; i < field.length+1; i++) {
+                    result=result.append(rawQuery.getString(i)+",");
+                }
+                String endResult=result.toString().endsWith(",")?(result.toString().substring(0,result.toString().length()-1)):result.toString();
+                Log.i("得到的数据",endResult);
+                results.add(endResult);
+            }
+            //3.关闭结果集与数据库
+            rawQuery.close();
+            readableDatabase.close();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return results;
     }
 
     private String getInserSQL(Class classs){
@@ -69,34 +115,39 @@ public class DBUtil {
             values="("+values+")";
         }else Log.e("传递Class","属性值空");
         Log.i("插入--->","Insert into "+classs.getSimpleName()+column+"values"+values);
-        return  "Insert into "+classs.getSimpleName()+column+"values"+values;
+        return  "Insert into "+classs.getSimpleName()+column+" values "+values;
     }
 
-    private Object[] getSqlValue(Class valueClass){
-        Field[] field = valueClass.getDeclaredFields();
+    private Object[] getSqlValue(Object object){
+        Field[] field = object.getClass().getDeclaredFields();
         Object[] objects=new Object[field.length];
         for (int i = 0; i < field.length; i++) {
             try {
-                Method method = valueClass.getMethod("get" + firstUp(field[i].getName()));
-                method.invoke(valueClass.newInstance());
+                field[i].setAccessible( true ); // 设置些属性是可以访问的
+                objects[i]= field[i].get(object);
             } catch (Exception e) {
                 Log.i("获取Method","错误");
                 e.printStackTrace();
             }
         }
+        String result="";
+        for (int i = 0; i < objects.length; i++) {
+            result=result+objects[i].toString()+",";
+        }
+        Log.i("值是",result.substring(0,result.length()-1));
         return objects;
     }
 
-    public void delectData(Class delectClass){
+    public void delectData(Class delectClass,String phone){
         SQLiteDatabase writableDatabase = dbHelper.getWritableDatabase();
         try {
             writableDatabase.beginTransaction();
-            writableDatabase.execSQL( "DELETE FROM " +delectClass.getSimpleName());
+            writableDatabase.execSQL( "DELETE FROM " +delectClass.getSimpleName()+" where phone="+phone);
             writableDatabase.setTransactionSuccessful();
             writableDatabase.endTransaction();
             writableDatabase.close();
         } catch (Exception ex) {
-            Log.e("删除数据库","失败");
+            Log.e("删除数据","失败");
             writableDatabase.close();
             ex.printStackTrace();
         } finally {
@@ -104,7 +155,7 @@ public class DBUtil {
         }
     }
 
-    private String firstUp(String changeString){
+    public String firstUp(String changeString){
         char[] cs=changeString.toCharArray();
         cs[0]-=32;
         return String.valueOf(cs);
@@ -121,8 +172,8 @@ public class DBUtil {
         dbNum= sharedPreferences.getInt("DbNum",0);
     }
 
-    private class DbHelper extends SQLiteOpenHelper{
-        DbHelper(Context context,int version) {
+    public class DbHelper extends SQLiteOpenHelper{
+        public DbHelper(Context context,int version) {
             super(context,dbname,null,version);
         }
 
@@ -143,7 +194,7 @@ public class DBUtil {
                 try {
                     String className=sharedPreferences.getString("dbNum"+(i+1),"");
                     Class<?> dbClass=Class.forName(className);
-                    db.execSQL("DROP TABLE IF EXISTS"+dbClass.getSimpleName());
+                    db.execSQL("DROP TABLE IF EXISTS "+dbClass.getSimpleName());
                 } catch (ClassNotFoundException e) {
                     Log.e("删除数据库","失败");
                     e.printStackTrace();
@@ -153,7 +204,7 @@ public class DBUtil {
         }
     }
 
-    private String createDbSql(String className){
+    public String createDbSql(String className){
         String sql="";
         try {
             Class<?> classe=Class.forName(className);
@@ -177,12 +228,12 @@ public class DBUtil {
     }
 
     public String selectType(String classType){
-        switch (classType.toLowerCase()){
-            case "int":
-                return "INTEGER";
-            case "java.lang.string":
-                return "varchar(60)";
-        }
+//        switch (classType.toLowerCase()){
+//            case "int":
+//                return "INTEGER";
+//            case "java.lang.string":
+//                return "varchar(60)";
+//        }
         return "varchar(60)";
     }
 }

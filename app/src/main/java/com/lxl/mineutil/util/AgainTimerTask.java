@@ -1,4 +1,4 @@
-package com.lxl.mineutil;
+package com.lxl.mineutil.util;
 
 import java.util.Timer;
 import java.util.TimerTask;
