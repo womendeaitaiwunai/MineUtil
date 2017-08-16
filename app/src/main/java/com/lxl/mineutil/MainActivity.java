@@ -17,7 +17,6 @@ import com.lxl.mineutil.adapter.PoJieAdapter;
 import com.lxl.mineutil.bean.BindPhonePacket;
 import com.lxl.mineutil.bean.BindPhoneReq;
 import com.lxl.mineutil.bean.BindPhoneSuc;
-import com.lxl.mineutil.bean.CheckBean;
 import com.lxl.mineutil.bean.MineJsonData;
 import com.lxl.mineutil.bean.Packet;
 import com.lxl.mineutil.bean.PhoneBean;
@@ -143,6 +142,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener{
      * 绑定设备
      */
     private void bindPhone(){
+        //30D776C8703D565EECC67673CDE34786   T508325
         showProgressDialog("正在破解...");
         BindPhoneReq bindPhoneReq=new BindPhoneReq();
         bindPhoneReq.setVersion(version);
@@ -213,7 +213,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener{
                             poJieBean.setVersion(version);
                             poJieBean.setEnterpriseId(jsonDataBean1.getEnterpriseId());
                             poJieBean.setPhone(phone);
-                            poJieBean.setToken(token);
+                            poJieBean.setToken(imei);
                             poJieBean.setRandom(randomCode);
                             adapter.addPojie(poJieBean);
                             PhoneBean phoneBean=new PhoneBean();
@@ -229,8 +229,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener{
     }
 
     private void checkImei(){
-        //imei=getRand(15);
-        imei="000000000000000";
+        imei=getRand(15);
+        //imei="000000000000000";
         randomCode=getRand(6);
         token=getRand(17);
         phone=getTel();
@@ -361,8 +361,10 @@ public class MainActivity extends BaseActivity implements View.OnClickListener{
     private static String getTel() {
         int index=getNum(0,telFirst.length-1);
         String first=telFirst[index];
-        String second=String.valueOf(getNum(1,888)+10000).substring(1);
-        String thrid=String.valueOf(getNum(1,9100)+10000).substring(1);
+        String second=String.valueOf(getNum(10000,99999)).substring(1,5);
+        //String second=String.valueOf(getNum(1,888)+10000).substring(1);
+        //String thrid=String.valueOf(getNum(1,9100)+10000).substring(1);
+        String thrid=String.valueOf(getNum(10000,99999)).substring(1,5);
         return first+second+thrid;
     }
 
@@ -437,7 +439,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener{
         if (data!=null&&requestCode==0x11){
             String phoneNumber=data.getStringExtra("phone");
             if (TextUtils.isEmpty(phoneNumber)) return;
-            imei="000000000000000";
+            //imei="000000000000000";
+            imei=getRand(15);
             randomCode=getRand(6);
             token=getRand(17);
             phone=phoneNumber;
