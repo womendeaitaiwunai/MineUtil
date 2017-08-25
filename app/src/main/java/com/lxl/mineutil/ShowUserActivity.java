@@ -1,18 +1,18 @@
 package com.lxl.mineutil;
 
+import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
+import com.just.library.AgentWeb;
 import com.lxl.mineutil.adapter.BaseActivity;
 import com.lxl.mineutil.adapter.UserAdapter;
 import com.lxl.mineutil.bean.UserBean;
@@ -31,6 +31,8 @@ public class ShowUserActivity extends BaseActivity{
     private String enterpriseKID;
     private List<UserBean.EnterpriseUserListBean> userListBean=new ArrayList<>();
     private UserAdapter adapter;
+    private AgentWeb mAgentWeb;
+    private LinearLayout mLinearLayout;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,6 +45,7 @@ public class ShowUserActivity extends BaseActivity{
                 finish();
             }
         });
+        mLinearLayout= (LinearLayout) findViewById(R.id.root_view);
         enterpriseKID=getIntent().getStringExtra("enterpriseKID");
 
         LinearLayoutManager layoutManager=new LinearLayoutManager(ShowUserActivity.this);
@@ -56,11 +59,12 @@ public class ShowUserActivity extends BaseActivity{
             public void startPoJie(UserBean.EnterpriseUserListBean userListBean) {
                 copy(userListBean.getPassword(),ShowUserActivity.this);
                 Toast.makeText(ShowUserActivity.this, "已经复制密码，准备破解", Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent();
-                intent.setAction("android.intent.action.VIEW");
-                Uri content_url = Uri.parse("http://www.cmd5.com/");
-                intent.setData(content_url);
-                startActivity(intent);
+//                Intent intent = new Intent();
+//                intent.setAction("android.intent.action.VIEW");
+//                Uri content_url = Uri.parse("https://www.somd5.com/");
+//                intent.setData(content_url);
+//                startActivity(intent);
+                startActivityByIntent(ShowUserActivity.this, WebActivity.class,false);
             }
         });
         getUser();
@@ -73,7 +77,8 @@ public class ShowUserActivity extends BaseActivity{
     public static void copy(String content, Context context) {
         ClipboardManager cmb = (ClipboardManager) context
                 .getSystemService(Context.CLIPBOARD_SERVICE);
-        cmb.setText(content.trim());
+        //cmb.setText(content.trim());
+        cmb.setPrimaryClip(ClipData.newPlainText("",content.trim()));
     }
 
     private void getUser(){

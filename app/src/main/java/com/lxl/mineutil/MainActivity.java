@@ -439,11 +439,12 @@ public class MainActivity extends BaseActivity implements View.OnClickListener{
         if (data!=null&&requestCode==0x11){
             String phoneNumber=data.getStringExtra("phone");
             if (TextUtils.isEmpty(phoneNumber)) return;
-            //imei="000000000000000";
-            imei=getRand(15);
+            imei="000000000000000";
+            //imei=getRand(15);
             randomCode=getRand(6);
             token=getRand(17);
             phone=phoneNumber;
+            Log.i("传递的号码",phone);
             version=versions.get(getNum(0,versions.size()-1));
             bindPhone();
         }
